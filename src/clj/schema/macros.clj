@@ -97,8 +97,13 @@
 (def primitive-sym? '#{float double boolean byte char short int long
                        floats doubles booleans bytes chars shorts ints longs objects})
 
-(clojure.core/defn valid-tag? [env tag]
-  (and (symbol? tag) (or (primitive-sym? tag) (class? (resolve env tag)))))
+(clojure.core/defn create-valid-tag [env tag]
+  (when (symbol? tag)
+    (if (primitive-sym? tag)
+      tag
+      (let [resolved (resolve env tag)]
+        (cond (class? resolved) tag
+              (and (var? resolved) (class? @resolved)) (symbol (.getName ^Class @resolved)))))))
 
 (clojure.core/defn normalized-metadata
   "Take an object with optional metadata, which may include a :tag and/or explicit
@@ -118,7 +123,7 @@
             (dissoc :tag :s :s? :schema)
             (utils/assoc-when :schema schema
                               :tag (let [t (or tag schema)]
-                                     (when (valid-tag? env t)
+                                     (when-let [t (create-valid-tag env t)]
                                        t))))))))
 
 (clojure.core/defn extract-schema-form

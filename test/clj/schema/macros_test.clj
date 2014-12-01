@@ -19,6 +19,12 @@
         (is (= (concat ['abc (merge explicit-meta schema-attrs doc-attrs attr-map) simple-body])
                (concat [name (meta name) more])))))))
 
+(deftest normalized-metadata-test
+  (is (= '{:schema String :tag String}
+         (meta (macros/normalized-metadata {} 'sym 'String))))
+  (is (= '{:schema schema.core/Str :tag java.lang.String}
+         (meta (macros/normalized-metadata {} 'sym 'schema.core/Str)))))
+
 (deftest compile-fn-validation?-test
   (is (macros/compile-fn-validation? {} 'foo))
   (is (not (macros/compile-fn-validation? {} (with-meta 'foo {:never-validate true}))))
